@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>order管理</title>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <!-- 引入样式 -->
+    <link href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+    <link href="/static/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <!-- 上传图片框样式，不使用上传组件可以删除此样式 -->
+    <style>
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 150px;
+            height: 70px;
+            line-height: 150px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 70px;
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!--查询表单-->
+    <el-form :inline="true">
+        <el-form-item label="物流名称">
+            <el-input class="filter-item" placeholder="物流名称" v-model="searchMap.shippingName"></el-input>
+        </el-form-item>
+        <el-form-item label="物流单号">
+            <el-input class="filter-item" placeholder="物流单号" v-model="searchMap.shippingCode"></el-input>
+        </el-form-item>
+        <el-form-item label="用户名称">
+            <el-input class="filter-item" placeholder="用户名称" v-model="searchMap.userName"></el-input>
+        </el-form-item>
+        <el-form-item label="订单状态">
+            <el-input class="filter-item" placeholder="订单状态" v-model="searchMap.orderStatus"></el-input>
+        </el-form-item>
+        <el-form-item label="支付状态">
+            <el-input class="filter-item" placeholder="支付状态" v-model="searchMap.payStatus"></el-input>
+        </el-form-item>
+        <el-form-item label="发货状态">
+            <el-input class="filter-item" placeholder="发货状态" v-model="searchMap.sendStatus"></el-input>
+        </el-form-item>
+        <el-form-item label="退货状态">
+            <el-input class="filter-item" placeholder="退货状态" v-model="searchMap.returnStatus"></el-input>
+        </el-form-item>
+        <el-form-item label="退款状态">
+            <el-input class="filter-item" placeholder="退款状态" v-model="searchMap.refundStauts"></el-input>
+        </el-form-item>
+        <el-form-item label="是否删除">
+            <el-input class="filter-item" placeholder="是否删除" v-model="searchMap.isDelete"></el-input>
+        </el-form-item>
+
+        <el-button @click="fetchData()" class="dalfBut">查询</el-button>
+        <el-button @click="formVisible=true;pojo={}" class="butT" type="primary">新增</el-button>
+    </el-form>
+
+    <el-table :data="tableData" border style="width: 100%">
+        <el-table-column label="订单id" prop="id" width="80"></el-table-column>
+        <el-table-column label="数量合计" prop="totalNum" width="80"></el-table-column>
+        <el-table-column label="金额合计" prop="totalMoney" width="80"></el-table-column>
+        <el-table-column label="优惠金额" prop="preMoney" width="80"></el-table-column>
+        <el-table-column label="邮费" prop="postFee" width="80"></el-table-column>
+        <el-table-column label="实付金额" prop="payMoney" width="80"></el-table-column>
+        <el-table-column label="支付类型" prop="payType" width="80"></el-table-column>
+        <el-table-column label="订单创建时间" prop="createTime" width="80"></el-table-column>
+        <el-table-column label="订单更新时间" prop="updateTime" width="80"></el-table-column>
+        <el-table-column label="付款时间" prop="paymentTime" width="80"></el-table-column>
+        <el-table-column label="发货时间" prop="consignTime" width="80"></el-table-column>
+        <el-table-column label="交易完成时间" prop="endTime" width="80"></el-table-column>
+        <el-table-column label="交易关闭时间" prop="closeTime" width="80"></el-table-column>
+        <el-table-column label="物流名称" prop="shippingName" width="80"></el-table-column>
+        <el-table-column label="物流单号" prop="shippingCode" width="80"></el-table-column>
+        <el-table-column label="用户ID" prop="userId" width="80"></el-table-column>
+        <el-table-column label="用户名称" prop="userName" width="80"></el-table-column>
+        <el-table-column label="买家留言" prop="buyerMessage" width="80"></el-table-column>
+        <el-table-column label="是否评价" prop="buyerRate" width="80"></el-table-column>
+        <el-table-column label="收货人" prop="receiverContact" width="80"></el-table-column>
+        <el-table-column label="收货人手机" prop="receiverMobile" width="80"></el-table-column>
+        <el-table-column label="收货人地址" prop="receiverAddress" width="80"></el-table-column>
+        <el-table-column label="订单来源" prop="sourceType"
+                         width="80"></el-table-column>
+        <el-table-column label="交易流水号" prop="transactionId" width="80"></el-table-column>
+        <el-table-column label="订单状态" prop="orderStatus" width="80"></el-table-column>
+        <el-table-column label="支付状态" prop="payStatus" width="80"></el-table-column>
+        <el-table-column label="发货状态" prop="sendStatus" width="80"></el-table-column>
+        <el-table-column label="退货状态" prop="returnStatus" width="80"></el-table-column>
+        <el-table-column label="退款状态" prop="refundStauts" width="80"></el-table-column>
+        <el-table-column label="是否删除" prop="isDelete" width="80"></el-table-column>
+
+        <el-table-column
+                label="操作">
+            <template slot-scope="scope">
+                <el-button @click="edit(scope.row.id)" size="mini" size="small" type="primary">修改</el-button>
+                <el-button @click="dele(scope.row.id)" size="mini" size="small" type="danger">删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+    <el-pagination
+            :current-page.sync="currentPage"
+            :page-size="size"
+            :page-sizes="[10, 20, 30, 40]"
+            :total="total"
+            @current-change="fetchData"
+            @size-change="fetchData"
+            class="pagiantion"
+            layout="total, sizes, prev, pager, next, jumper">
+    </el-pagination>
+    <!--弹出窗口-->
+    <el-dialog :visible.sync="formVisible" title="编辑">
+        <el-form label-width="80px">
+            <el-form-item label="数量合计">
+                <el-input v-model="pojo.totalNum"></el-input>
+            </el-form-item>
+            <el-form-item label="金额合计">
+                <el-input v-model="pojo.totalMoney"></el-input>
+            </el-form-item>
+            <el-form-item label="优惠金额">
+                <el-input v-model="pojo.preMoney"></el-input>
+            </el-form-item>
+            <el-form-item label="邮费">
+                <el-input v-model="pojo.postFee"></el-input>
+            </el-form-item>
+            <el-form-item label="实付金额">
+                <el-input v-model="pojo.payMoney"></el-input>
+            </el-form-item>
+            <el-form-item label="支付类型">
+                <el-input v-model="pojo.payType"></el-input>
+            </el-form-item>
+            <el-form-item label="订单创建时间">
+                <el-input v-model="pojo.createTime"></el-input>
+            </el-form-item>
+            <el-form-item label="订单更新时间">
+                <el-input v-model="pojo.updateTime"></el-input>
+            </el-form-item>
+            <el-form-item label="付款时间">
+                <el-input v-model="pojo.paymentTime"></el-input>
+            </el-form-item>
+            <el-form-item label="发货时间">
+                <el-input v-model="pojo.consignTime"></el-input>
+            </el-form-item>
+            <el-form-item label="交易完成时间">
+                <el-input v-model="pojo.endTime"></el-input>
+            </el-form-item>
+            <el-form-item label="交易关闭时间">
+                <el-input v-model="pojo.closeTime"></el-input>
+            </el-form-item>
+            <el-form-item label="物流名称">
+                <el-input v-model="pojo.shippingName"></el-input>
+            </el-form-item>
+            <el-form-item label="物流单号">
+                <el-input v-model="pojo.shippingCode"></el-input>
+            </el-form-item>
+            <el-form-item label="用户ID">
+                <el-input v-model="pojo.userId"></el-input>
+            </el-form-item>
+            <el-form-item label="用户名称">
+                <el-input v-model="pojo.userName"></el-input>
+            </el-form-item>
+            <el-form-item label="买家留言">
+                <el-input v-model="pojo.buyerMessage"></el-input>
+            </el-form-item>
+            <el-form-item label="是否评价">
+                <el-input v-model="pojo.buyerRate"></el-input>
+            </el-form-item>
+            <el-form-item label="收货人">
+                <el-input v-model="pojo.receiverContact"></el-input>
+            </el-form-item>
+            <el-form-item label="收货人手机">
+                <el-input v-model="pojo.receiverMobile"></el-input>
+            </el-form-item>
+            <el-form-item label="收货人地址">
+                <el-input v-model="pojo.receiverAddress"></el-input>
+            </el-form-item>
+            <el-form-item label="订单来源">
+                <el-input v-model="pojo.sourceType"></el-input>
+            </el-form-item>
+            <el-form-item label="交易流水号">
+                <el-input v-model="pojo.transactionId"></el-input>
+            </el-form-item>
+            <el-form-item label="订单状态">
+                <el-input v-model="pojo.orderStatus"></el-input>
+            </el-form-item>
+            <el-form-item label="支付状态">
+                <el-input v-model="pojo.payStatus"></el-input>
+            </el-form-item>
+            <el-form-item label="发货状态">
+                <el-input v-model="pojo.sendStatus"></el-input>
+            </el-form-item>
+            <el-form-item label="退货状态">
+                <el-input v-model="pojo.returnStatus"></el-input>
+            </el-form-item>
+            <el-form-item label="退款状态">
+                <el-input v-model="pojo.refundStauts"></el-input>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <el-input v-model="pojo.isDelete"></el-input>
+            </el-form-item>
+
+            <!-- 图片上传代码 如页面有图片上传功能放开注释 ****
+            <el-form-item label="图片">
+                <el-upload
+                        class="avatar-uploader"
+                        action="/upload/native.do"
+                        :show-file-list="false"
+                        :on-success="handleAvatarSuccess"
+                        :before-upload="beforeAvatarUpload">
+                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+            </el-form-item>
+            -->
+
+            <el-form-item>
+                <el-button @click="save()" type="primary">保存</el-button>
+                <el-button @click="formVisible = false">关闭</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+</div>
+</body>
+<script src="/static/js/vue.js"></script>
+<script src="/static/js/axios.js"></script>
+<script src="/static/js/elementui.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                tableData: [],
+                currentPage: 1,
+                total: 10,
+                size: 10,
+                searchMap: {},
+                pojo: {},
+                formVisible: false,
+                imageUrl: ''
+            }
+        },
+        created() {
+            this.fetchData();
+        },
+        methods: {
+            fetchData() {
+                axios.post(`/order/findPage.do?page=${this.currentPage}&size=${this.size}`, this.searchMap).then(response => {
+                    this.tableData = response.data.rows;
+                    this.total = response.data.total;
+                });
+            },
+            save() {
+                // this.pojo.image= this.imageUrl; //如页面有图片上传功能放开注释
+                axios.post(`/order/${this.pojo.id == null ? 'add' : 'update'}.do`, this.pojo).then(response => {
+                    this.fetchData(); //刷新列表
+                    this.formVisible = false;//关闭窗口
+                });
+            },
+            edit(id) {
+                this.formVisible = true // 打开窗口
+                // 调用查询
+                axios.get(`/order/findById.do?id=${id}`).then(response => {
+                    this.pojo = response.data;
+                    // this.imageUrl=this.pojo.image //显示图片  如页面有图片上传功能放开注释
+                })
+            },
+            dele(id) {
+                this.$confirm('确定要删除此记录吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get(`/order/delete.do?id=${id}`).then(response => {
+                        this.fetchData(); //刷新列表
+                    })
+                })
+            },
+            /* ****图片上传相关代码  如页面有图片上传功能放开注释 ****
+            handleAvatarSuccess(res, file) {
+                this.imageUrl = file.response;
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            }*/
+        }
+    })
+</script>
+</html>
